@@ -22,34 +22,67 @@
 double pHArray[length];
 
 #define start_convert 0
-const byte num_readings = 20; 
+#define num_readings 20 // number of sample EC readings
+double ECArray[num_readings];
 
 void setup() {
   pinMode(sensorOne_PIN, INPUT);
   pinMode(sensorTwo_PIN, INPUT);
   pinMode(sensorThree_PIN, INPUT);
   Serial.begin(9600);
+
+  // initialize array with empty values
+  for(int i=0; i<length; i++){
+    pHArray[i]=0;
+  }
+
+  // initialize array with empty values
+  for(int i=0; i< num_readings; i++){
+    ECArray[i]=0;
+  }
 }
 
 void loop() {
-  static float pH_value;
-  static float voltage;
-  float output_value;
+  static float pH_value; // the calculated pH value
+  static float voltage; // voltage from pH
+  float output_value; // output from the pH sensor
 
+  static float ec_value; // calculated ec value
+  static float ec_voltage; // voltage from ec
+  float reading_value; // output from the EC sensor
+
+  // read from the pH meter
   for(int i=0; i<length; i++){
     output_value = digitalRead(sensorOne_PIN);
     pHArray[i] = output_value;
   }
 
+  // calculate the voltage using average pH readings
   voltage = average_array(pHArray, length)*5.0/1024;
+  // calculate pH
   pH_value = 3.5*voltage+offset;
 
-  Serial.print("Voltage: ");
+  // print pH information on Serial
+  Serial.print("Voltage (pH): ");
   Serial.print(voltage);
   Serial.print(" pH Value: ");
   Serial.println(pH_value);
 
+  // read from the EC meter
+  for(int i=0; i<num_readings; i++){
+    reading_value = digitalRead(sensorTwo_PIN);
+    ECArray[i] = reading_value;
+  }
+  
+  ec_voltage = average_array(ECArray, num_readings)*5.0/1024;
+
+  Serial.print("Voltage (EC): ");
+  Serial.print(ec_voltage);
+  Serial.print(" EC Value: ");
+  Serial.println(ec_value);
+  
   delay(2000);
+  
 }
 
 /*
